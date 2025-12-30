@@ -1,6 +1,7 @@
 [package]
 name = "urlexpand"
-version = "0.2.4"
+version = "0.2.5"
+publish = ["valyu-sxurl"]
 description = "Expand / Unshorten an exhaustive list of Shortened URL's"
 authors = ["Marirs <marirs@gmail.com>"]
 keywords = ["expand", "unshorten", "url", "link"]

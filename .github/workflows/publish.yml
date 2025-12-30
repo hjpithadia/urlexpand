@@ -1,0 +1,28 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Configure registry
+        run: |
+          mkdir -p .cargo
+          cat > .cargo/config.toml << 'EOF'
+          [registries.valyu-sxurl]
+          index = "sparse+https://cargo.cloudsmith.io/valyu/sxurl/"
+          credential-provider = "cargo:token"
+          EOF
+      
+      - name: Publish to Cloudsmith
+        env:
+          CARGO_REGISTRIES_VALYU_SXURL_TOKEN: "Token ${{ secrets.CLOUDSMITH_API_KEY }}"
+        run: cargo publish --registry valyu-sxurl
+
