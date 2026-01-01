@@ -14,8 +14,8 @@ jobs:
       
       - name: Configure registry
         run: |
-          mkdir -p .cargo
-          cat > .cargo/config.toml << 'EOF'
+          mkdir -p ~/.cargo
+          cat > ~/.cargo/config.toml << 'EOF'
           [registries.valyu-sxurl]
           index = "sparse+https://cargo.cloudsmith.io/valyu/sxurl/"
           credential-provider = "cargo:token"
