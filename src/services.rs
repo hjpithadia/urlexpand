@@ -94,7 +94,24 @@ pub(crate) static SERVICES: [&str; 91] = [
     "zpr.io",
 ];
 
+use url::Url;
+
 /// Check and tell which URL Shortner Service is used
 pub(crate) fn which_service(url: &str) -> Option<&'static str> {
-    SERVICES.iter().find(|&x| url.contains(x)).copied()
+    let domain = Url::parse(url)
+        .or_else(|_| Url::parse(&format!("https://{}", url)))
+        .ok()
+        .and_then(|u| u.domain().map(|d| d.to_lowercase()))?;
+
+    let d = domain.strip_suffix('.').unwrap_or(&domain);
+
+    SERVICES
+        .iter()
+        .find(|&&svc| {
+            d == svc
+                || d.strip_suffix(svc)
+                    .map(|prefix| prefix.ends_with('.'))
+                    .unwrap_or(false)
+        })
+        .copied()
 }

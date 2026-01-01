@@ -15,6 +15,22 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 use futures::future::{ready, TryFutureExt};
 
+/// Check if domain matches a shortener service (exact match or subdomain)
+fn domain_matches_service(domain: &str, service: &str) -> bool {
+    domain == service
+        || domain
+            .strip_suffix(service)
+            .map(|prefix| prefix.ends_with('.'))
+            .unwrap_or(false)
+}
+
+/// Check if a domain (without scheme) is a shortened URL service
+fn domain_is_shortened(domain: &str) -> bool {
+    let d = domain.to_lowercase();
+    let d = d.strip_suffix('.').unwrap_or(&d);
+    SERVICES.iter().any(|&svc| domain_matches_service(d, svc))
+}
+
 pub fn is_shortened(url: &str) -> bool {
     //! Check to see if a given url is a shortened url
     //! ## Example
@@ -24,7 +40,12 @@ pub fn is_shortened(url: &str) -> bool {
     //! let url = "https://bit.ly/id";
     //! assert!(is_shortened(url));
     //! ```
-    SERVICES.iter().any(|x| url.contains(x))
+    Url::parse(url)
+        .or_else(|_| Url::parse(&format!("https://{}", url)))
+        .ok()
+        .and_then(|u| u.domain().map(|d| d.to_string()))
+        .map(|d| domain_is_shortened(&d))
+        .unwrap_or(false)
 }
 
 #[cfg(feature = "blocking")]
@@ -105,5 +126,6 @@ fn validate(u: &str) -> Option<String> {
 
     parts
         .domain()
-        .and_then(|domain| is_shortened(domain).then(|| parts.as_str().into()))
+        .filter(|d| domain_is_shortened(d))
+        .map(|_| parts.as_str().into())
 }
