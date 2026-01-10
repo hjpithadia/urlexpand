@@ -86,11 +86,14 @@ pub async fn unshorten(url: &str, timeout: Option<Duration>) -> Result<String> {
                     resolvers::adfly::unshort(&validated_url, timeout).await
                 }
 
-                // Redirect Resolvers
+                // Redirect Resolvers (JavaScript-based redirects)
                 "gns.io" | "ity.im" | "ldn.im" | "nowlinks.net" | "rlu.ru" | "tinyurl.com"
-                | "tr.im" | "u.to" | "vzturl.com" => {
+                | "tr.im" | "vzturl.com" => {
                     resolvers::redirect::unshort(&validated_url, timeout).await
                 }
+
+                // HTTP 3xx Redirect Resolvers
+                "u.to" => resolvers::http_redirect::unshort(&validated_url, timeout).await,
 
                 // Meta Refresh Resolvers
                 "cutt.us" | "soo.gd" => resolvers::refresh::unshort(&validated_url, timeout).await,

@@ -12,17 +12,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       
-      - name: Configure registry
-        run: |
-          mkdir -p ~/.cargo
-          cat > ~/.cargo/config.toml << 'EOF'
-          [registries.valyu-sxurl]
-          index = "sparse+https://cargo.cloudsmith.io/valyu/sxurl/"
-          credential-provider = "cargo:token"
-          EOF
+      - name: Install Cloudsmith CLI
+        run: pip install cloudsmith-cli
+      
+      - name: Package crate
+        run: cargo package
       
       - name: Publish to Cloudsmith
-        env:
-          CARGO_REGISTRIES_VALYU_SXURL_TOKEN: "Token ${{ secrets.CLOUDSMITH_API_KEY }}"
-        run: cargo publish --registry valyu-sxurl
-
+        run: |
+          cloudsmith push cargo valyu/sxurl target/package/urlexpand-*.crate \
+            --api-key "${{ secrets.CLOUDSMITH_API_KEY }}" \
+            --republish
